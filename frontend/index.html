@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Family Chores App</title>
+    <script>
+        // Redirect to the simple version which has full functionality
+        window.location.href = 'simple.html';
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#3B82F6">
+    <style>
+        /* Mobile Responsiveness */
+        @media (max-width: 640px) {
+            .notification {
+                left: 20px;
+                right: 20px;
+                max-width: none;
+            }
+            
+            .theme-toggle {
+                width: 40px;
+                height: 20px;
+            }
+            
+            .theme-toggle-slider {
+                width: 16px;
+                height: 16px;
+            }
+            
+            .theme-toggle.dark .theme-toggle-slider {
+                transform: translateX(20px);
+            }
+            
+            /* Adjust spacing for mobile */
+            .p-6 {
+                padding: 1rem;
+            }
+            
+            .space-x-8 > * + * {
+                margin-left: 1rem;
+            }
+            
+            /* Make buttons more tappable on mobile */
+            button, 
+            [type="button"],
+            [type="submit"] {
+                min-height: 44px;
+                min-width: 44px;
+            }
+            
+            /* Improve form inputs on mobile */
+            input, select, textarea {
+                font-size: 16px; /* Prevents iOS zoom on focus */
+            }
+        }
+        
+        /* CSS Custom Properties for Theming */
+        :root {
+            --bg-primary: #f9fafb;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f3f4f6;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --text-tertiary: #9ca3af;
+            --border-primary: #e5e7eb;
+            --border-secondary: #d1d5db;
+            --accent-primary: #3b82f6;
+            --accent-secondary: #1d4ed8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #111827;
+            --bg-secondary: #1f2937;
+            --bg-tertiary: #374151;
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --text-tertiary: #9ca3af;
+            --border-primary: #374151;
+            --border-secondary: #4b5563;
+            --accent-primary: #60a5fa;
+            --accent-secondary: #3b82f6;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --error: #f87171;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        /* Theme Transition */
+        * {
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+
+        [x-cloak] { display: none !important; }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(0); }
+        }
+        .pulse-ring {
+            animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.33); }
+            80%, 100% { opacity: 0; }
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 400px;
+        }
+        .timer-warning {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Dark Mode Toggle Button */
+        .theme-toggle {
+            position: relative;
+            width: 48px;
+            height: 24px;
+            background: var(--border-secondary);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .theme-toggle.dark {
+            background: var(--accent-primary);
+        }
+
+        .theme-toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle.dark .theme-toggle-slider {
+            transform: translateX(24px);
+        }
+
+        .theme-toggle-icon {
+            width: 12px;
+            height: 12px;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body class="min-h-screen" style="background-color: var(--bg-primary); color: var(--text-primary);" x-data="familyChoresApp()" x-init="init()">
+    <!-- Loading Screen -->
+    <div x-show="loading" x-cloak class="fixed inset-0 bg-blue-600 flex items-center justify-center z-50">
+        <div class="text-center text-white">
+            <div class="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <h2 class="text-2xl font-bold mb-2">Family Chores</h2>
+            <p class="text-blue-100">Loading your family dashboard...</p>
+        </div>
+    </div>
+
+    <!-- Notifications -->
+    <div x-show="notification.show" x-transition class="notification">
+        <div class="bg-white rounded-lg shadow-lg border-l-4 p-4"
+             :class="{
+                 'border-green-500': notification.type === 'success',
+                 'border-red-500': notification.type === 'error',
+                 'border-yellow-500': notification.type === 'warning',
+                 'border-blue-500': notification.type === 'info'
+             }">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg x-show="notification.type === 'success'" class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    <svg x-show="notification.type === 'error'" class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                    </svg>
+                    <svg x-show="notification.type === 'warning'" class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    <svg x-show="notification.type === 'info'" class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium text-gray-900" x-text="notification.title"></p>
+                    <p class="text-sm text-gray-500" x-text="notification.message"></p>
+                </div>
+                <div class="ml-auto pl-3">
+                    <button @click="hideNotification()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div x-show="!loading" x-cloak class="min-h-screen">
+        <!-- Login Screen -->
+        <div x-show="!isAuthenticated" class="min-h-screen bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 fade-in">
+                <div class="text-center mb-8">
+                    <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                        </svg>
+                    </div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Family Chores</h1>
+                    <p class="text-gray-600">Manage chores and rewards for your family</p>
+                </div>
+
+                <!-- Family Code Login -->
+                <div x-show="loginStep === 'family'" class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Family Code</label>
+                        <input type="text" x-model="familyCode" @keyup.enter="loginWithFamilyCode()" 
+                               placeholder="Enter your family code" 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase" 
+                               maxlength="10">
+                    </div>
+                    <button @click="loginWithFamilyCode()" :disabled="!familyCode || loginLoading" 
+                            class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                        <span x-show="!loginLoading">Continue</span>
+                        <span x-show="loginLoading" class="flex items-center justify-center">
+                            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Connecting...
+                        </span>
+                    </button>
+                    <div class="text-center">
+                        <button @click="showRegisterFamily = true" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                            Don't have a family code? Register here
+                        </button>
+                    </div>
+                </div>
+
+                <!-- User Login -->
+                <div x-show="loginStep === 'user'" class="space-y-6">
+                    <div class="text-center">
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">Login to Your Account</h3>
+                        <p class="text-sm text-gray-600" x-text="familyInfo?.name"></p>
+                    </div>
+                    <form @submit.prevent="loginWithPassword()" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                            <input type="email" x-model="loginForm.email" required
+                                   placeholder="Enter your email" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                            <input type="password" x-model="loginForm.password" required
+                                   placeholder="Enter your password" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <button type="submit" :disabled="loginLoading" 
+                                class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                            <span x-show="!loginLoading">Login</span>
+                            <span x-show="loginLoading" class="flex items-center justify-center">
+                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Logging in...
+                            </span>
+                        </button>
+                    </form>
+                    <div class="text-center space-y-2">
+                        <button @click="showRegisterUser = true" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                            Don't have an account? Register here
+                        </button>
+                        <br>
+                        <button @click="goBackToFamilyLogin()" class="text-gray-600 hover:text-gray-800 text-sm">
+                            ← Back to family code
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Register Family Modal -->
+            <div x-show="showRegisterFamily" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8" @click.away="showRegisterFamily = false">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6">Register New Family</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Family Name</label>
+                            <input type="text" x-model="registerForm.name" placeholder="The Smith Family" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Admin Email</label>
+                            <input type="email" x-model="registerForm.admin_email" placeholder="parent@family.com" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Admin Password</label>
+                            <input type="password" x-model="registerForm.admin_password" placeholder="Create a secure password" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                    </div>
+                    <div class="flex space-x-3 mt-6">
+                        <button @click="showRegisterFamily = false" 
+                                class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <button @click="registerFamily()" :disabled="!registerForm.name || !registerForm.admin_email || !registerForm.admin_password || registerLoading" 
+                                class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                            <span x-show="!registerLoading">Register</span>
+                            <span x-show="registerLoading">Registering...</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Register User Modal -->
+            <div x-show="showRegisterUser" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8" @click.away="showRegisterUser = false">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6">Create Your Account</h3>
+                    <p class="text-sm text-gray-600 mb-4" x-text="'Join ' + (familyInfo?.name || 'the family')"></p>
+                    <form @submit.prevent="registerUser()" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                            <input type="text" x-model="registerUserForm.name" required placeholder="Enter your full name" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                            <input type="email" x-model="registerUserForm.email" required placeholder="Enter your email" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                            <input type="password" x-model="registerUserForm.password" required placeholder="Create a secure password" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                            <select x-model="registerUserForm.role" required 
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="child">Child</option>
+                                <option value="parent">Parent</option>
+                            </select>
+                        </div>
+                        <div class="flex space-x-3 mt-6">
+                            <button type="button" @click="showRegisterUser = false" 
+                                    class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                                Cancel
+                            </button>
+                            <button type="submit" :disabled="registerUserLoading" 
+                                    class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                                <span x-show="!registerUserLoading">Create Account</span>
+                                <span x-show="registerUserLoading">Creating...</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div x-show="isAuthenticated" class="min-h-screen">
+            <!-- Header -->
+            <header class="bg-white shadow-sm border-b border-gray-200">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between items-center h-16">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h1 class="text-xl font-semibold text-gray-900">Family Chores</h1>
+                                <p class="text-sm text-gray-500" x-text="user?.family_name"></p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <!-- Dark Mode Toggle -->
+                            <div class="theme-toggle" :class="{ 'dark': isDarkMode }" @click="toggleTheme()">
+                                <div class="theme-toggle-slider">
+                                    <svg x-show="!isDarkMode" class="theme-toggle-icon" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <svg x-show="isDarkMode" class="theme-toggle-icon" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <!-- User Info -->
+                            <div class="flex items-center space-x-3">
+                                <div class="text-right">
+                                    <div class="text-sm font-medium text-gray-900" x-text="user?.name"></div>
+                                    <div class="text-xs text-gray-500 capitalize" x-text="user?.role"></div>
+                                    <div x-show="user?.role === 'child'" class="text-xs text-green-600 font-medium">
+                                        $<span x-text="parseFloat(user?.earnings || 0).toFixed(2)"></span>
+                                    </div>
+                                </div>
+                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <span class="text-blue-600 font-medium" x-text="user?.name?.charAt(0).toUpperCase()"></span>
+                                </div>
+                            </div>
+                            <!-- Logout -->
+                            <button @click="logout()" class="text-gray-400 hover:text-gray-600">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Navigation Tabs -->
+            <nav class="bg-white border-b border-gray-200">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex space-x-8">
+                        <button @click="activeTab = 'dashboard'" 
+                                :class="activeTab === 'dashboard' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'" 
+                                class="py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                            Dashboard
+                        </button>
+                        <button @click="activeTab = 'chores'" 
+                                :class="activeTab === 'chores' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'" 
+                                class="py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                            Chores
+                        </button>
+                        <button x-show="user?.role === 'parent'" @click="activeTab = 'manage'" 
+                                :class="activeTab === 'manage' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'" 
+                                class="py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                            Manage
+                        </button>
+                        <button @click="activeTab = 'family'" 
+                                :class="activeTab === 'family' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'" 
+                                class="py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                            Family
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Tab Content -->
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <!-- Dashboard Tab -->
+                <div x-show="activeTab === 'dashboard'" x-cloak>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Quick Stats -->
+                        <div class="lg:col-span-2 space-y-6">
+                            <!-- Current Chores -->
+                            <div class="bg-white rounded-lg shadow p-6">
+                                <h3 class="text-lg font-medium text-gray-900 mb-4">My Current Chores</h3>
+                                <div x-show="currentChores.length === 0" class="text-center py-8 text-gray-500">
+                                    <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                                    </svg>
+                                    <p>No active chores</p>
+                                </div>
+                                <div class="space-y-3">
+                                    <template x-for="chore in currentChores" :key="chore.id">
+                                        <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
+                                            <div class="flex justify-between items-start">
+                                                <div class="flex-1">
+                                                    <h4 class="font-medium text-gray-900" x-text="chore.title"></h4>
+                                                    <p class="text-sm text-gray-600 mt-1" x-text="chore.description"></p>
+                                                    <div class="flex items-center mt-2 space-x-4">
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                                              :class="{
+                                                                  'bg-yellow-100 text-yellow-800': chore.status === 'pending_acceptance',
+                                                                  'bg-blue-100 text-blue-800': chore.status === 'assigned',
+                                                                  'bg-green-100 text-green-800': chore.status === 'auto_accepted',
+                                                                  'bg-purple-100 text-purple-800': chore.status === 'pending_approval'
+                                                              }"
+                                                              x-text="chore.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())">
+                                                        </span>
+                                                        <span class="text-sm text-green-600 font-medium">
+                                                            <span x-text="chore.reward_type === 'money' ? '$' : ''"></span><span x-text="chore.current_reward"></span><span x-text="chore.reward_type === 'screen_time' ? ' min' : ''"></span>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="ml-4 flex-shrink-0">
+                                                    <button x-show="chore.status === 'pending_acceptance'" @click="acceptChore(chore.id)" 
+                                                            class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 mr-2">
+                                                        Accept
+                                                    </button>
+                                                    <button x-show="chore.status === 'pending_acceptance'" @click="declineChore(chore.id)" 
+                                                            class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">
+                                                        Decline
+                                                    </button>
+                                                    <button x-show="chore.status === 'in_progress' || chore.status === 'auto_accepted'" @click="openSubmitModal(chore)" 
+                                                            class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+                                                        Submit
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- Recent Activity -->
+                            <div class="bg-white rounded-lg shadow p-6">
+                                <h3 class="text-lg font-medium text-gray-900 mb-4">Recent Activity</h3>
+                                <div x-show="recentTasks.length === 0" class="text-center py-8 text-gray-500">
+                                    <p>No recent activity</p>
+                                </div>
+                                <div class="space-y-3">
+                                    <template x-for="task in recentTasks.slice(0, 5)" :key="task.id">
+                                        <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-900" x-text="task.chore_title"></p>
+                                                <p class="text-xs text-gray-500" x-text="formatDate(task.completed_at)"></p>
+                                            </div>
+                                            <span class="text-sm text-green-600 font-medium">
+                                                +$<span x-text="parseFloat(task.reward_earned).toFixed(2)"></span>
+                                            </span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sidebar -->
+                        <div class="space-y-6">
+                            <!-- Earnings Card -->
+                            <div x-show="user?.role === 'child'" class="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow p-6 text-white">
+                                <h3 class="text-lg font-medium mb-2">Total Earnings</h3>
+                                <p class="text-3xl font-bold">$<span x-text="parseFloat(user?.earnings || 0).toFixed(2)"></span></p>
+                                <p class="text-green-100 text-sm mt-2">
+                                    <span x-text="recentTasks.length"></span> chores completed
+                                </p>
+                            </div>
+
+                            <!-- Family Leaderboard -->
+                            <div class="bg-white rounded-lg shadow p-6">
+                                <h3 class="text-lg font-medium text-gray-900 mb-4">Family Leaderboard</h3>
+                                <div x-show="familyMembers.length === 0" class="text-center py-4 text-gray-500">
+                                    <p>Loading family members...</p>
+                                </div>
+                                <div class="space-y-3">
+                                    <template x-for="(member, index) in familyMembers.slice(0, 5)" :key="member.id">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center">
+                                                <span class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs font-medium mr-3" x-text="index + 1"></span>
+                                                <div>
+                                                    <p class="text-sm font-medium text-gray-900" x-text="member.name"></p>
+                                                    <p class="text-xs text-gray-500 capitalize" x-text="member.role"></p>
+                                                </div>
+                                            </div>
+                                            <span class="text-sm text-green-600 font-medium">
+                                                $<span x-text="parseFloat(member.earnings || 0).toFixed(2)"></span>
+                                            </span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chores Tab -->
+                <div x-show="activeTab === 'chores'" x-cloak>
+                    <div class="bg-white rounded-lg shadow">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <h3 class="text-lg font-medium text-gray-900">All Chores</h3>
+                        </div>
+                        <div class="p-6">
+                            <div x-show="allChores.length === 0" class="text-center py-8 text-gray-500">
+                                <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"/>
+                                </svg>
+                                <p>No chores available</p>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <template x-for="chore in allChores" :key="chore.id">
+                                    <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
+                                        <h4 class="font-medium text-gray-900 mb-2" x-text="chore.title"></h4>
+                                        <p class="text-sm text-gray-600 mb-3" x-text="chore.description"></p>
+                                        <div class="flex items-center justify-between">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                                  :class="{
+                                                      'bg-gray-100 text-gray-800': chore.status === 'available',
+                                                      'bg-yellow-100 text-yellow-800': chore.status === 'pending_acceptance',
+                                                      'bg-blue-100 text-blue-800': chore.status === 'assigned',
+                                                      'bg-green-100 text-green-800': chore.status === 'auto_accepted',
+                                                      'bg-purple-100 text-purple-800': chore.status === 'pending_approval'
+                                                  }"
+                                                  x-text="chore.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())">
+                                            </span>
+                                            <span class="text-sm text-green-600 font-medium">
+                                                <span x-text="chore.reward_type === 'money' ? '$' : ''"></span><span x-text="chore.current_reward"></span><span x-text="chore.reward_type === 'screen_time' ? ' min' : ''"></span>
+                                            </span>
+                                        </div>
+                                        <div x-show="chore.assignee_name" class="mt-2 text-xs text-gray-500">
+                                            Assigned to: <span x-text="chore.assignee_name"></span>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Manage Tab (Parents Only) -->
+                <div x-show="activeTab === 'manage' && user?.role === 'parent'" x-cloak>
+                    <div class="space-y-6">
+                        <!-- Create Chore -->
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-medium text-gray-900">Create New Chore</h3>
+                                <button @click="openRecurringModal()" 
+                                        class="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700">
+                                    Create Recurring Chore
+                                </button>
+                            </div>
+                            <form @submit.prevent="createChore()" class="space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                                        <input type="text" x-model="newChore.title" required 
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Reward Type</label>
+                                        <select x-model="newChore.reward_type" required 
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                            <option value="money">Money ($)</option>
+                                            <option value="screen_time">Screen Time (minutes)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                                    <textarea x-model="newChore.description" rows="3" 
+                                              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Reward Amount</label>
+                                        <input type="number" x-model="newChore.reward_amount" step="0.01" min="0" required 
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Acceptance Timer (min)</label>
+                                        <input type="number" x-model="newChore.acceptance_timer" min="1" max="60" value="5" 
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    </div>
+                                    <div class="flex items-center">
+                                        <label class="flex items-center">
+                                            <input type="checkbox" x-model="newChore.requires_photo" 
+                                                   class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                            <span class="ml-2 text-sm text-gray-700">Requires Photo</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <button type="submit" :disabled="createChoreLoading" 
+                                        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                                    <span x-show="!createChoreLoading">Create Chore</span>
+                                    <span x-show="createChoreLoading">Creating...</span>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Manage Existing Chores -->
+                        <div class="bg-white rounded-lg shadow">
+                            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                                <h3 class="text-lg font-medium text-gray-900">Manage Chores</h3>
+                                <button @click="refreshData()" class="text-blue-600 hover:text-blue-700 text-sm">
+                                    Refresh
+                                </button>
+                            </div>
+                            <div class="p-6">
+                                <div class="space-y-4">
+                                    <template x-for="chore in allChores" :key="chore.id">
+                                        <div class="border border-gray-200 rounded-lg p-4">
+                                            <div class="flex justify-between items-start">
+                                                <div class="flex-1">
+                                                    <h4 class="font-medium text-gray-900" x-text="chore.title"></h4>
+                                                    <p class="text-sm text-gray-600 mt-1" x-text="chore.description"></p>
+                                                    <div class="flex items-center mt-2 space-x-4">
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                                              :class="{
+                                                                  'bg-gray-100 text-gray-800': chore.status === 'available',
+                                                                  'bg-yellow-100 text-yellow-800': chore.status === 'pending_acceptance',
+                                                                  'bg-blue-100 text-blue-800': chore.status === 'assigned',
+                                                                  'bg-green-100 text-green-800': chore.status === 'auto_accepted',
+                                                                  'bg-purple-100 text-purple-800': chore.status === 'pending_approval'
+                                                              }"
+                                                              x-text="chore.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())">
+                                                        </span>
+                                                        <span class="text-sm text-green-600 font-medium">
+                                                            <span x-text="chore.reward_type === 'money' ? '$' : ''"></span><span x-text="chore.current_reward"></span><span x-text="chore.reward_type === 'screen_time' ? ' min' : ''"></span>
+                                                        </span>
+                                                        <span x-show="chore.assignee_name" class="text-sm text-gray-500">
+                                                            Assigned to: <span x-text="chore.assignee_name"></span>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="ml-4 flex-shrink-0 space-x-2">
+                                                    <button x-show="chore.status === 'available'" @click="assignChore(chore.id)" 
+                                                            class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+                                                        Assign
+                                                    </button>
+                                                    <button x-show="chore.status === 'pending_approval'" @click="viewSubmissions(chore)" 
+                                                            class="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700">
+                                                        Review
+                                                    </button>
+                        </div>
+                        
+                        <!-- Recurring Chores -->
+                        <div class="bg-white rounded-lg shadow">
+                            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                                <h3 class="text-lg font-medium text-gray-900">Recurring Chores</h3>
+                                <button @click="refreshData()" class="text-blue-600 hover:text-blue-700 text-sm">
+                                    Refresh
+                                </button>
+                            </div>
+                            <div class="p-6">
+                                <div x-show="recurringChores.length === 0" class="text-center py-8 text-gray-500">
+                                    <p>No recurring chores set up yet</p>
+                                </div>
+                                <div class="space-y-4">
+                                    <template x-for="chore in recurringChores" :key="chore.id">
+                                        <div class="border border-gray-200 rounded-lg p-4">
+                                            <div class="flex justify-between items-start">
+                                                <div class="flex-1">
+                                                    <h4 class="font-medium text-gray-900" x-text="chore.title"></h4>
+                                                    <p class="text-sm text-gray-600 mt-1" x-text="chore.description"></p>
+                                                    <div class="flex items-center mt-2 space-x-4">
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800" 
+                                                              x-text="formatFrequency(chore.frequency, chore.day_of_week, chore.day_of_month)">
+                                                        </span>
+                                                        <span class="text-sm text-green-600 font-medium">
+                                                            <span x-text="chore.reward_type === 'money' ? '$' : ''"></span><span x-text="chore.reward_amount"></span><span x-text="chore.reward_type === 'screen_time' ? ' min' : ''"></span>
+                                                        </span>
+                                                        <span class="text-sm text-purple-600">
+                                                            Next: <span x-text="formatNextDueDate(chore.next_due_date)"></span>
+                                                        </span>
+                                                    </div>
+                                                    <div x-show="chore.assigned_to_name" class="mt-2 text-xs text-gray-500">
+                                                        Assigned to: <span x-text="chore.assigned_to_name"></span>
+                                                    </div>
+                                                    <div x-show="chore.auto_assign && chore.rotation_type !== 'none'" class="mt-2 text-xs text-gray-500">
+                                                        Auto-assign with <span x-text="chore.rotation_type"></span> rotation
+                                                    </div>
+                                                </div>
+                                                <div class="ml-4 flex-shrink-0">
+                                                    <button @click="generateChoresFromRecurring(chore.id)" 
+                                                            class="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700">
+                                                        Generate Now
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Family Tab -->
+                <div x-show="activeTab === 'family'" x-cloak>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Family Info -->
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Family Information</h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="text-sm font-medium text-gray-500">Family Name</label>
+                                    <p class="text-gray-900" x-text="user?.family_name"></p>
+                                </div>
+                                <div>
+                                    <label class="text-sm font-medium text-gray-500">Family Code</label>
+                                    <p class="text-gray-900 font-mono" x-text="user?.family_code"></p>
+                                </div>
+                                <div>
+                                    <label class="text-sm font-medium text-gray-500">Total Members</label>
+                                    <p class="text-gray-900" x-text="familyMembers.length"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Family Members -->
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-medium text-gray-900">Family Members</h3>
+                                <button x-show="user?.role === 'parent'" @click="showAddMemberModal = true" 
+                                        class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+                                    Add Member
+                                </button>
+                            </div>
+                            <div class="space-y-3">
+                                <template x-for="member in familyMembers" :key="member.id">
+                                    <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                        <div class="flex items-center">
+                                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                                <span class="text-blue-600 font-medium" x-text="member.name.charAt(0).toUpperCase()"></span>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium text-gray-900" x-text="member.name"></p>
+                                                <p class="text-sm text-gray-500 capitalize" x-text="member.role"></p>
+                                                <p x-show="member.role === 'child'" class="text-sm text-green-600">
+                                                    $<span x-text="parseFloat(member.earnings || 0).toFixed(2)"></span> earned
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div x-show="member.id === user?.id" class="text-sm text-blue-600 font-medium">
+                                            You
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Recurring Chore Modal -->
+    <div x-show="showRecurringModal" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" @click.away="closeRecurringModal()">
+            <h3 class="text-xl font-bold text-gray-900 mb-4">Create Recurring Chore</h3>
+            <form @submit.prevent="createRecurringChore()" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                        <input type="text" x-model="newRecurringChore.title" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Reward Type</label>
+                        <select x-model="newRecurringChore.reward_type" required 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="money">Money ($)</option>
+                            <option value="screen_time">Screen Time (minutes)</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                    <textarea x-model="newRecurringChore.description" rows="2" 
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Reward Amount</label>
+                        <input type="number" x-model="newRecurringChore.reward_amount" step="0.01" min="0" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Frequency</label>
+                        <select x-model="newRecurringChore.frequency" required 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Weekly options -->
+                <div x-show="newRecurringChore.frequency === 'weekly'">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Day of Week</label>
+                    <select x-model="newRecurringChore.day_of_week" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="monday">Monday</option>
+                        <option value="tuesday">Tuesday</option>
+                        <option value="wednesday">Wednesday</option>
+                        <option value="thursday">Thursday</option>
+                        <option value="friday">Friday</option>
+                        <option value="saturday">Saturday</option>
+                        <option value="sunday">Sunday</option>
+                    </select>
+                </div>
+                
+                <!-- Monthly options -->
+                <div x-show="newRecurringChore.frequency === 'monthly'">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Day of Month</label>
+                    <select x-model="newRecurringChore.day_of_month" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <template x-for="day in Array.from({length: 31}, (_, i) => i + 1)" :key="day">
+                            <option :value="day" x-text="day"></option>
+                        </template>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                    <input type="date" x-model="newRecurringChore.start_date" required 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                
+                <div class="flex items-center">
+                    <input type="checkbox" x-model="newRecurringChore.requires_photo" 
+                           class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    <span class="ml-2 text-sm text-gray-700">Requires Photo</span>
+                </div>
+                
+                <div class="flex items-center">
+                    <input type="checkbox" x-model="newRecurringChore.auto_assign" 
+                           class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    <span class="ml-2 text-sm text-gray-700">Auto-assign to family members</span>
+                </div>
+                
+                <div x-show="newRecurringChore.auto_assign">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Assignment Method</label>
+                    <select x-model="newRecurringChore.rotation_type" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="none">Fixed Assignment</option>
+                        <option value="round_robin">Round Robin</option>
+                        <option value="random">Random</option>
+                    </select>
+                </div>
+                
+                <div x-show="newRecurringChore.auto_assign && newRecurringChore.rotation_type === 'none'">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Assign To</label>
+                    <select x-model="newRecurringChore.assigned_to" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Select family member</option>
+                        <template x-for="member in familyMembers.filter(m => m.role === 'child')" :key="member.id">
+                            <option :value="member.id" x-text="member.name"></option>
+                        </template>
+                    </select>
+                </div>
+                
+                <div class="flex space-x-3 mt-6">
+                    <button type="button" @click="closeRecurringModal()" 
+                            class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" :disabled="createRecurringLoading" 
+                            class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                        <span x-show="!createRecurringLoading">Create</span>
+                        <span x-show="createRecurringLoading">Creating...</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- Submit Chore Modal -->
+    <div x-show="showSubmitModal" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" @click.away="closeSubmitModal()">
+            <h3 class="text-xl font-bold text-gray-900 mb-4">Submit Chore</h3>
+            <div x-show="selectedChore">
+                <p class="text-gray-600 mb-4">
+                    Submit completion for: <span class="font-medium" x-text="selectedChore?.title"></span>
+                </p>
+                <form @submit.prevent="submitChore()" class="space-y-4">
+                    <div x-show="selectedChore?.requires_photo">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Photo (Required)</label>
+                        <input type="file" @change="handlePhotoUpload" accept="image/*" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
+                        <textarea x-model="submitForm.notes" rows="3" placeholder="Add any notes about completing this chore..." 
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button type="button" @click="closeSubmitModal()" 
+                                class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <button type="submit" :disabled="submitLoading" 
+                                class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                            <span x-show="!submitLoading">Submit</span>
+                            <span x-show="submitLoading">Submitting...</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Member Modal -->
+    <div x-show="showAddMemberModal" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" @click.away="showAddMemberModal = false">
+            <h3 class="text-xl font-bold text-gray-900 mb-4">Add Family Member</h3>
+            <form @submit.prevent="addFamilyMember()" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                    <input type="text" x-model="newMember.name" required 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                    <select x-model="newMember.role" required 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="parent">Parent</option>
+                        <option value="child">Child</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email (Optional)</label>
+                    <input type="email" x-model="newMember.email" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div class="flex space-x-3">
+                    <button type="button" @click="showAddMemberModal = false" 
+                            class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" :disabled="addMemberLoading" 
+                            class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                        <span x-show="!addMemberLoading">Add Member</span>
+                        <span x-show="addMemberLoading">Adding...</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

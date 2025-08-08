@@ -1,0 +1,1863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#4F46E5">
+    <title>Family Chores - Simple Version</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hidden { display: none !important; }
+        
+        /* Enhanced Mobile Responsiveness */
+        @media (max-width: 640px) {
+            /* Adjust spacing for mobile */
+            .p-6, .p-8, .p-4 {
+                padding: 1rem !important;
+            }
+            
+            /* Make buttons more tappable on mobile */
+            button, 
+            [type="button"],
+            [type="submit"] {
+                min-height: 44px;
+                min-width: 44px;
+                touch-action: manipulation;
+            }
+            
+            /* Improve form inputs on mobile */
+            input, select, textarea {
+                font-size: 16px !important; /* Prevents iOS zoom on focus */
+                -webkit-appearance: none;
+                border-radius: 8px;
+            }
+            
+            /* Adjust grid layouts for mobile */
+            .grid {
+                grid-template-columns: 1fr !important;
+            }
+            
+            /* Make modals more mobile-friendly */
+            .fixed.inset-0 > div {
+                width: 95% !important;
+                max-width: none !important;
+                margin: 1rem auto;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+            
+            /* Improve notification positioning */
+            #notification {
+                left: 1rem;
+                right: 1rem;
+                width: auto;
+                bottom: 1rem;
+                top: auto;
+            }
+            
+            /* Mobile navigation improvements */
+            nav .flex {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            nav button {
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+            
+            /* Header adjustments */
+            header .text-xl {
+                font-size: 1rem;
+            }
+            
+            header .text-sm {
+                font-size: 0.75rem;
+            }
+            
+            /* Card adjustments for mobile */
+            .rounded-lg {
+                border-radius: 0.5rem;
+            }
+            
+            /* Chore cards on mobile */
+            #allChores {
+                grid-template-columns: 1fr !important;
+            }
+            
+            /* Tab content padding */
+            .tab-content {
+                padding: 0.5rem;
+            }
+            
+            /* Modal close button positioning */
+            .fixed button svg {
+                width: 2rem;
+                height: 2rem;
+            }
+        }
+        
+        /* Tablet responsiveness */
+        @media (min-width: 641px) and (max-width: 1024px) {
+            /* Adjust grid for tablets */
+            .grid-cols-1.lg\:grid-cols-2 {
+                grid-template-columns: 1fr 1fr !important;
+            }
+            
+            #allChores {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+        }
+        
+        /* Touch-friendly interactions */
+        @media (hover: none) and (pointer: coarse) {
+            /* Larger touch targets */
+            button, a, [role="button"] {
+                min-height: 48px;
+                min-width: 48px;
+            }
+            
+            /* Remove hover effects on touch devices */
+            button:hover, a:hover {
+                background-color: inherit;
+            }
+            
+            /* Add active states for better feedback */
+            button:active, a:active {
+                opacity: 0.8;
+                transform: scale(0.98);
+            }
+        }
+        
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Better focus indicators */
+        button:focus-visible, 
+        input:focus-visible, 
+        select:focus-visible, 
+        textarea:focus-visible {
+            outline: 2px solid #3B82F6;
+            outline-offset: 2px;
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3B82F6;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Photo preview styles */
+        .photo-preview {
+            max-width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+        
+        /* Swipe hint for navigation */
+        .swipe-hint {
+            display: none;
+        }
+        
+        @media (max-width: 640px) {
+            .swipe-hint {
+                display: block;
+                text-align: center;
+                color: #6B7280;
+                font-size: 0.75rem;
+                margin-top: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-600 to-purple-700">
+    <!-- Login Section -->
+    <div id="loginSection" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Family Chores</h1>
+                <p class="text-gray-600">Simple chore management</p>
+            </div>
+
+            <!-- Simple Login Form -->
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Family Code</label>
+                    <input type="text" id="familyCode" placeholder="Enter family code" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <input type="email" id="email" placeholder="Enter your email" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <input type="password" id="password" placeholder="Enter your password" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700">
+                    Login
+                </button>
+            </form>
+
+            <!-- Quick Register -->
+            <div class="mt-6 text-center">
+                <button id="showRegister" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                    Create New Family
+                </button>
+            </div>
+
+            <!-- Register Form -->
+            <form id="registerForm" class="space-y-4 mt-6 hidden">
+                <h3 class="text-lg font-medium text-gray-900">Create New Family</h3>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Family Name</label>
+                    <input type="text" id="regFamilyName" placeholder="The Smith Family" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
+                    <input type="text" id="regAdminName" placeholder="John Doe"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Admin Email</label>
+                    <input type="email" id="regEmail" placeholder="parent@family.com" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <input type="password" id="regPassword" placeholder="Create password" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div class="flex space-x-3">
+                    <button type="button" id="cancelRegister" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                        Register
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard Section -->
+    <div id="dashboardSection" class="hidden min-h-screen bg-gray-50">
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center">
+                        <h1 class="text-xl font-semibold text-gray-900">Family Chores</h1>
+                        <span id="familyName" class="ml-4 text-sm text-gray-500"></span>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span id="userName" class="text-sm font-medium text-gray-900"></span>
+                        <button id="logoutBtn" class="text-gray-400 hover:text-gray-600">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="bg-white border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex space-x-8">
+                    <button class="tab-btn py-4 px-1 border-b-2 border-blue-500 text-blue-600 font-medium text-sm" data-tab="dashboard">
+                        Dashboard
+                    </button>
+                    <button class="tab-btn py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm" data-tab="chores">
+                        All Chores
+                    </button>
+                    <button class="tab-btn py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm" data-tab="manage" id="manageTab">
+                        Manage
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <!-- Dashboard Tab -->
+            <div id="dashboardTab" class="tab-content">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">My Chores</h3>
+                        <div id="myChores" class="space-y-3">
+                            <p class="text-gray-500">Loading chores...</p>
+                        </div>
+                    </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-medium text-gray-900">Family Members</h3>
+                        <button id="showAddMemberModal" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+                            Add Family Member
+                        </button>
+                    </div>
+                    <div id="familyMembers" class="space-y-3">
+                        <p class="text-gray-500">Loading members...</p>
+                    </div>
+                </div>
+                </div>
+                <div class="mt-6">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Recent Completed Tasks</h3>
+                        <div id="recentTasks" class="space-y-3">
+                            <p class="text-gray-500">Loading recent tasks...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- All Chores Tab -->
+            <div id="choresTab" class="tab-content hidden">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">All Chores</h3>
+                    <div id="allChores" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <p class="text-gray-500">Loading chores...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chore Details Modal -->
+            <div id="choreDetailsModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center hidden z-50">
+                <div class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start">
+                            <h3 id="choreDetailsTitle" class="text-lg font-medium text-gray-900"></h3>
+                            <button id="closeChoreDetails" class="text-gray-400 hover:text-gray-500">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="choreDetailsContent" class="mt-4">
+                            <div class="space-y-3">
+                                <p id="choreDescription" class="text-sm text-gray-600"></p>
+                                <div class="flex justify-between">
+                                    <span class="text-sm font-medium">Reward:</span>
+                                    <span id="choreRewardDisplay" class="text-sm text-green-600"></span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-sm font-medium">Status:</span>
+                                    <span id="choreStatusDisplay" class="text-sm"></span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-sm font-medium">Assigned to:</span>
+                                    <span id="choreAssigneeDisplay" class="text-sm"></span>
+                                </div>
+                            </div>
+                            
+                            <div id="choreActions" class="mt-6 space-y-3">
+                                <!-- Dynamic action buttons will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Chore Modal -->
+            <div id="submitChoreModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center hidden z-50">
+                <div class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start">
+                            <h3 class="text-lg font-medium text-gray-900">Submit Completed Chore</h3>
+                            <button id="closeSubmitChore" class="text-gray-400 hover:text-gray-500">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <form id="submitChoreForm" class="mt-4 space-y-4">
+                            <input type="hidden" id="submitChoreId">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Notes (optional)</label>
+                                <textarea id="submitNotes" rows="3" 
+                                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Photo (optional)</label>
+                                <input type="file" id="submitPhoto" accept="image/*" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700">
+                                Submit Chore
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recurring Chore Modal -->
+            <div id="recurringChoreModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center hidden z-50">
+                <div class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start">
+                            <h3 class="text-lg font-medium text-gray-900">Create Recurring Chore</h3>
+                            <button id="closeRecurringModal" class="text-gray-400 hover:text-gray-500">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <form id="createRecurringForm" class="mt-4 space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                                    <input type="text" id="recurringTitle" required 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Reward Amount ($)</label>
+                                    <input type="number" id="recurringReward" step="0.01" min="0" required 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                                <textarea id="recurringDescription" rows="2" 
+                                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Frequency</label>
+                                    <select id="recurringFrequency" required 
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <option value="daily">Daily</option>
+                                        <option value="weekly" selected>Weekly</option>
+                                        <option value="monthly">Monthly</option>
+                                    </select>
+                                </div>
+                                <div id="weeklyOptions">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Day of Week</label>
+                                    <select id="recurringDayOfWeek" 
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <option value="monday">Monday</option>
+                                        <option value="tuesday">Tuesday</option>
+                                        <option value="wednesday">Wednesday</option>
+                                        <option value="thursday">Thursday</option>
+                                        <option value="friday">Friday</option>
+                                        <option value="saturday">Saturday</option>
+                                        <option value="sunday">Sunday</option>
+                                    </select>
+                                </div>
+                                <div id="monthlyOptions" class="hidden">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Day of Month</label>
+                                    <select id="recurringDayOfMonth" 
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                                <input type="date" id="recurringStartDate" required 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="recurringRequiresPhoto" 
+                                       class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="ml-2 text-sm text-gray-700">Requires Photo</span>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="recurringAutoAssign" 
+                                       class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="ml-2 text-sm text-gray-700">Auto-assign to family members</span>
+                            </div>
+                            <div id="assignmentOptions" class="hidden">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Assignment Method</label>
+                                <select id="recurringRotationType" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="none">Fixed Assignment</option>
+                                    <option value="round_robin">Round Robin</option>
+                                    <option value="random">Random</option>
+                                </select>
+                                <div id="fixedAssignmentOptions">
+                                    <label class="block text-sm font-medium text-gray-700 mt-4 mb-2">Assign To</label>
+                                    <select id="recurringAssignedTo" 
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <option value="">Select family member</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700">
+                                Create Recurring Chore
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Add Family Member Modal -->
+            <div id="addMemberModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center hidden z-50">
+                <div class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start">
+                            <h3 class="text-lg font-medium text-gray-900">Add Family Member</h3>
+                            <button id="closeAddMember" class="text-gray-400 hover:text-gray-500">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <form id="addMemberForm" class="mt-4 space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                                <input type="text" id="memberName" required 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                                <select id="memberRole" required 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="child">Child</option>
+                                    <option value="parent">Parent</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Email (optional)</label>
+                                <input type="email" id="memberEmail" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <button type="submit" class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700">
+                                Add Family Member
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assign Chore Modal -->
+            <div id="assignChoreModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center hidden z-50">
+                <div class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start">
+                            <h3 class="text-lg font-medium text-gray-900">Assign Chore</h3>
+                            <button id="closeAssignChore" class="text-gray-400 hover:text-gray-500">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <form id="assignChoreForm" class="mt-4 space-y-4">
+                            <input type="hidden" id="assignChoreId">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Assign to</label>
+                                <select id="assignUserId" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">Select family member</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700">
+                                Assign Chore
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manage Tab -->
+            <div id="manageTabContent" class="tab-content hidden">
+                <div class="space-y-6">
+                    <!-- Create Chore -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-medium text-gray-900">Create New Chore</h3>
+                            <button id="showRecurringModal" class="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700">
+                                Create Recurring Chore
+                            </button>
+                        </div>
+                        <form id="createChoreForm" class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                                    <input type="text" id="choreTitle" required 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Reward Amount ($)</label>
+                                    <input type="number" id="choreReward" step="0.01" min="0" required 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                                <textarea id="choreDescription" rows="3" 
+                                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Requires Photo</label>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="choreRequiresPhoto" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span class="ml-2 text-sm text-gray-700">Requires Photo</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Acceptance Timer (min)</label>
+                                    <input type="number" id="choreAcceptanceTimer" min="1" max="60" value="5"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+                                    <select id="chorePriority" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <option value="low">Low</option>
+                                        <option value="medium" selected>Medium</option>
+                                        <option value="high">High</option>
+                                        <option value="urgent">Urgent</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end mt-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Estimated Duration (min)</label>
+                                    <input type="number" id="choreEstimatedDuration" min="1"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., 15">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Difficulty</label>
+                                    <select id="choreDifficulty" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <option value="easy">Easy</option>
+                                        <option value="medium" selected>Medium</option>
+                                        <option value="hard">Hard</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                                    <input type="text" id="choreCategory" placeholder="e.g., Cleaning" 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="choreAutoAssign" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">Auto-assign to family members</span>
+                                </label>
+                            </div>
+
+                            <div id="choreAssignmentOptions" class="hidden mt-3">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Assignment Method</label>
+                                <select id="choreRotationType" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="none">Fixed Assignment</option>
+                                    <option value="round_robin">Round Robin</option>
+                                    <option value="random">Random</option>
+                                </select>
+
+                                <div id="choreFixedAssignment" class="mt-3">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Assign To</label>
+                                    <select id="choreAssignedTo" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <option value="">Select family member</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 mt-4">
+                                Create Chore
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Manage Existing Chores -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Manage Chores</h3>
+                        <div id="manageChores" class="space-y-4">
+                            <p class="text-gray-500">Loading chores...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="fixed top-4 right-4 bg-white rounded-lg shadow-lg border-l-4 p-4 hidden z-50">
+        <div class="flex">
+            <div class="ml-3">
+                <p id="notificationTitle" class="text-sm font-medium text-gray-900"></p>
+                <p id="notificationMessage" class="text-sm text-gray-500"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple JavaScript implementation
+        let currentUser = null;
+        let authToken = null;
+        const API_BASE = '/api';
+
+        // Utility functions
+        function showNotification(title, message, type = 'info') {
+            const notification = document.getElementById('notification');
+            const titleEl = document.getElementById('notificationTitle');
+            const messageEl = document.getElementById('notificationMessage');
+            
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+            
+            // Set border color based on type
+            notification.className = `fixed top-4 right-4 bg-white rounded-lg shadow-lg border-l-4 p-4 z-50 ${
+                type === 'success' ? 'border-green-500' :
+                type === 'error' ? 'border-red-500' :
+                type === 'warning' ? 'border-yellow-500' :
+                'border-blue-500'
+            }`;
+            
+            notification.classList.remove('hidden');
+            
+            setTimeout(() => {
+                notification.classList.add('hidden');
+            }, 5000);
+        }
+
+        async function apiCall(endpoint, options = {}) {
+            const url = `${API_BASE}${endpoint}`;
+            const config = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                },
+                ...options
+            };
+
+            if (authToken && !config.headers.Authorization) {
+                config.headers.Authorization = `Bearer ${authToken}`;
+            }
+
+            try {
+                const response = await fetch(url, config);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.message || `HTTP ${response.status}`);
+                }
+                
+                return data;
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        function showDashboard() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('dashboardSection').classList.remove('hidden');
+            loadDashboardData();
+        }
+
+        function showLogin() {
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('dashboardSection').classList.add('hidden');
+            currentUser = null;
+            authToken = null;
+            localStorage.removeItem('family_chores_token');
+        }
+
+        async function loadDashboardData() {
+            if (!currentUser) return;
+
+            // Update header
+            document.getElementById('userName').textContent = currentUser.name;
+            document.getElementById('familyName').textContent = currentUser.family_name;
+
+            // Show/hide manage tab based on role
+            const manageTab = document.getElementById('manageTab');
+            if (currentUser.role === 'parent') {
+                manageTab.classList.remove('hidden');
+            } else {
+                manageTab.classList.add('hidden');
+            }
+
+            // Load data
+            await Promise.all([
+                loadMyChores(),
+                loadAllChores(),
+                loadFamilyMembers()
+            ]);
+        }
+
+        async function loadMyChores() {
+            try {
+                const data = await apiCall('/users/me/chores');
+                const myChoresEl = document.getElementById('myChores');
+                
+                if (data.chores && data.chores.length > 0) {
+                    myChoresEl.innerHTML = data.chores.map(chore => `
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <h4 class="font-medium text-gray-900">${chore.title}</h4>
+                            <p class="text-sm text-gray-600 mt-1">${chore.description || ''}</p>
+                            <div class="flex justify-between items-center mt-2">
+                                <span class="text-sm text-green-600 font-medium">$${chore.current_reward}</span>
+                                <span class="text-xs px-2 py-1 rounded-full ${getStatusBadgeClass(chore.status)}">${formatStatus(chore.status)}</span>
+                            </div>
+                            <div class="mt-3 flex justify-between">
+                                ${chore.status === 'pending_acceptance' ? `
+                                    <div>
+                                        <button class="text-sm bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700" onclick="acceptChore(${chore.id})">
+                                            Accept
+                                        </button>
+                                        <button class="text-sm bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700" onclick="declineChore(${chore.id})">
+                                            Decline
+                                        </button>
+                                    </div>
+                                ` : ''}
+                                ${chore.status === 'in_progress' ? `
+                                    <button class="text-sm bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700" onclick="showSubmitChoreModal(${chore.id})">
+                                        Submit
+                                    </button>
+                                ` : ''}
+                                <button class="text-sm text-blue-600 hover:text-blue-800" onclick="viewChoreDetails(${chore.id})">
+                                    View Details
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    myChoresEl.innerHTML = '<p class="text-gray-500">No chores assigned</p>';
+                }
+            } catch (error) {
+                console.error('Error loading my chores:', error);
+                document.getElementById('myChores').innerHTML = '<p class="text-red-500">Error loading chores</p>';
+            }
+        }
+
+        async function loadAllChores() {
+            try {
+                const data = await apiCall('/chores');
+                const allChoresEl = document.getElementById('allChores');
+                const manageChoresEl = document.getElementById('manageChores');
+                
+                if (data.chores && data.chores.length > 0) {
+                    const choreHTML = data.chores.map(chore => `
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <h4 class="font-medium text-gray-900">${chore.title}</h4>
+                            <p class="text-sm text-gray-600 mt-1">${chore.description || ''}</p>
+                            <div class="flex justify-between items-center mt-2">
+                                <span class="text-sm text-green-600 font-medium">$${chore.current_reward}</span>
+                                <span class="text-xs px-2 py-1 rounded-full ${getStatusBadgeClass(chore.status)}">${formatStatus(chore.status)}</span>
+                            </div>
+                            ${chore.assignee_name ? `<p class="text-xs text-gray-500 mt-1">Assigned to: ${chore.assignee_name}</p>` : ''}
+                            <div class="mt-3 flex justify-end">
+                                <button class="text-sm text-blue-600 hover:text-blue-800" onclick="viewChoreDetails(${chore.id})">
+                                    View Details
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    allChoresEl.innerHTML = choreHTML;
+                    if (manageChoresEl) {
+                        manageChoresEl.innerHTML = data.chores.map(chore => `
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <h4 class="font-medium text-gray-900">${chore.title}</h4>
+                                <p class="text-sm text-gray-600 mt-1">${chore.description || ''}</p>
+                                <div class="flex justify-between items-center mt-2">
+                                    <span class="text-sm text-green-600 font-medium">$${chore.current_reward}</span>
+                                    <span class="text-xs px-2 py-1 rounded-full ${getStatusBadgeClass(chore.status)}">${formatStatus(chore.status)}</span>
+                                </div>
+                                ${chore.assignee_name ? `<p class="text-xs text-gray-500 mt-1">Assigned to: ${chore.assignee_name}</p>` : ''}
+                                <div class="mt-3 flex justify-end space-x-2">
+                                    <button class="text-sm text-blue-600 hover:text-blue-800" onclick="viewChoreDetails(${chore.id})">
+                                        View
+                                    </button>
+                                    ${chore.status === 'available' ? `
+                                        <button class="text-sm text-green-600 hover:text-green-800" onclick="showAssignChoreModal(${chore.id})">
+                                            Assign
+                                        </button>
+                                    ` : ''}
+                                    ${chore.status === 'pending_approval' ? `
+                                        <button class="text-sm text-green-600 hover:text-green-800" onclick="approveChore(${chore.id})">
+                                            Approve
+                                        </button>
+                                        <button class="text-sm text-red-600 hover:text-red-800" onclick="rejectChore(${chore.id})">
+                                            Reject
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                } else {
+                    allChoresEl.innerHTML = '<p class="text-gray-500">No chores available</p>';
+                    if (manageChoresEl) {
+                        manageChoresEl.innerHTML = '<p class="text-gray-500">No chores created yet</p>';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading all chores:', error);
+                document.getElementById('allChores').innerHTML = '<p class="text-red-500">Error loading chores</p>';
+            }
+        }
+
+        async function loadFamilyMembers() {
+            try {
+                const data = await apiCall('/users/family/members');
+                const familyMembersEl = document.getElementById('familyMembers');
+                
+                if (data.members && data.members.length > 0) {
+                    familyMembersEl.innerHTML = data.members.map(member => `
+                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                            <div>
+                                <p class="font-medium text-gray-900">${member.name}</p>
+                                <p class="text-sm text-gray-500 capitalize">${member.role}</p>
+                            </div>
+                            <span class="text-sm text-green-600">$${parseFloat(member.earnings || 0).toFixed(2)}</span>
+                        </div>
+                    `).join('');
+                    
+                    // Also populate the assign chore dropdown
+                    const assignUserIdEl = document.getElementById('assignUserId');
+                    if (assignUserIdEl) {
+                        const childMembers = data.members.filter(member => member.role === 'child');
+                        assignUserIdEl.innerHTML = '<option value="">Select family member</option>' + 
+                            childMembers.map(member => `
+                                <option value="${member.id}">${member.name}</option>
+                            `).join('');
+                    }
+                } else {
+                    familyMembersEl.innerHTML = '<p class="text-gray-500">No family members found</p>';
+                }
+            } catch (error) {
+                console.error('Error loading family members:', error);
+                document.getElementById('familyMembers').innerHTML = '<p class="text-red-500">Error loading members</p>';
+            }
+        }
+        
+        async function loadRecentTasks() {
+            try {
+                const data = await apiCall('/users/profile');
+                const recentTasksEl = document.getElementById('recentTasks');
+                
+                if (data.completed_tasks && data.completed_tasks.length > 0) {
+                    recentTasksEl.innerHTML = data.completed_tasks.map(task => `
+                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                            <div>
+                                <p class="font-medium text-gray-900">${task.chore_title}</p>
+                                <p class="text-xs text-gray-500">Completed: ${formatDate(task.completed_at)}</p>
+                            </div>
+                            <span class="text-sm text-green-600">$${parseFloat(task.reward_earned || 0).toFixed(2)}</span>
+                        </div>
+                    `).join('');
+                    
+                    // Update user earnings if available
+                    if (data.user) {
+                        currentUser.earnings = data.user.earnings;
+                    }
+                } else {
+                    recentTasksEl.innerHTML = '<p class="text-gray-500">No completed tasks yet</p>';
+                }
+            } catch (error) {
+                console.error('Error loading recent tasks:', error);
+                document.getElementById('recentTasks').innerHTML = '<p class="text-red-500">Error loading tasks</p>';
+            }
+        }
+
+        // Chore detail functions
+        async function viewChoreDetails(choreId) {
+            try {
+                const data = await apiCall(`/chores/${choreId}`);
+                const chore = data.data.chore;
+                
+                // Populate modal
+                document.getElementById('choreDetailsTitle').textContent = chore.title;
+                document.getElementById('choreDescription').textContent = chore.description || 'No description provided';
+                document.getElementById('choreRewardDisplay').textContent = `$${parseFloat(chore.current_reward).toFixed(2)}`;
+                document.getElementById('choreStatusDisplay').textContent = formatStatus(chore.status);
+                document.getElementById('choreStatusDisplay').className = `text-sm ${getStatusTextClass(chore.status)}`;
+                document.getElementById('choreAssigneeDisplay').textContent = chore.assignee_name || 'Not assigned';
+                
+                // Set up action buttons based on chore status and user role
+                const actionsDiv = document.getElementById('choreActions');
+                actionsDiv.innerHTML = '';
+                
+                if (currentUser.role === 'parent') {
+                    // Parent actions
+                    if (chore.status === 'available') {
+                        actionsDiv.innerHTML = `
+                            <button onclick="showAssignChoreModal(${chore.id})" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700">
+                                Assign Chore
+                            </button>
+                        `;
+                    } else if (chore.status === 'pending_approval') {
+                        actionsDiv.innerHTML = `
+                            <button onclick="approveChore(${chore.id})" class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 mb-2">
+                                Approve Submission
+                            </button>
+                            <button onclick="rejectChore(${chore.id})" class="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700">
+                                Reject Submission
+                            </button>
+                        `;
+                    }
+                } else {
+                    // Child actions
+                    if (chore.status === 'pending_acceptance' && chore.assigned_to === currentUser.id) {
+                        actionsDiv.innerHTML = `
+                            <button onclick="acceptChore(${chore.id})" class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 mb-2">
+                                Accept Chore
+                            </button>
+                            <button onclick="declineChore(${chore.id})" class="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700">
+                                Decline Chore
+                            </button>
+                        `;
+                    } else if (chore.status === 'in_progress' && chore.assigned_to === currentUser.id) {
+                        actionsDiv.innerHTML = `
+                            <button onclick="showSubmitChoreModal(${chore.id})" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700">
+                                Submit Completed Chore
+                            </button>
+                        `;
+                    }
+                }
+                
+                // Show modal
+                document.getElementById('choreDetailsModal').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error loading chore details:', error);
+                showNotification('Error', 'Failed to load chore details', 'error');
+            }
+        }
+        
+        function showSubmitChoreModal(choreId) {
+            document.getElementById('submitChoreId').value = choreId;
+            document.getElementById('submitNotes').value = '';
+            document.getElementById('submitPhoto').value = '';
+            document.getElementById('submitChoreModal').classList.remove('hidden');
+            document.getElementById('choreDetailsModal').classList.add('hidden');
+        }
+        
+        function showAssignChoreModal(choreId) {
+            document.getElementById('assignChoreId').value = choreId;
+            document.getElementById('assignChoreModal').classList.remove('hidden');
+            document.getElementById('choreDetailsModal').classList.add('hidden');
+        }
+        
+        async function acceptChore(choreId) {
+            try {
+                await apiCall(`/chores/${choreId}/accept`, { method: 'POST' });
+                document.getElementById('choreDetailsModal').classList.add('hidden');
+                await loadMyChores();
+                await loadAllChores();
+                showNotification('Success', 'Chore accepted successfully', 'success');
+            } catch (error) {
+                console.error('Error accepting chore:', error);
+                showNotification('Error', error.message, 'error');
+            }
+        }
+        
+        async function declineChore(choreId) {
+            try {
+                await apiCall(`/chores/${choreId}/decline`, { method: 'POST' });
+                document.getElementById('choreDetailsModal').classList.add('hidden');
+                await loadMyChores();
+                await loadAllChores();
+                showNotification('Info', 'Chore declined', 'info');
+            } catch (error) {
+                console.error('Error declining chore:', error);
+                showNotification('Error', error.message, 'error');
+            }
+        }
+        
+        async function approveChore(choreId) {
+            try {
+                await apiCall(`/chores/${choreId}/approve`, { method: 'POST' });
+                document.getElementById('choreDetailsModal').classList.add('hidden');
+                await loadAllChores();
+                await loadFamilyMembers();
+                await loadRecentTasks();
+                showNotification('Success', 'Chore approved and reward awarded', 'success');
+            } catch (error) {
+                console.error('Error approving chore:', error);
+                showNotification('Error', error.message, 'error');
+            }
+        }
+        
+        async function rejectChore(choreId) {
+            try {
+                const feedback = prompt('Please provide feedback for rejection:');
+                if (feedback === null) return; // User cancelled
+                
+                await apiCall(`/chores/${choreId}/reject`, { 
+                    method: 'POST',
+                    body: JSON.stringify({ feedback })
+                });
+                document.getElementById('choreDetailsModal').classList.add('hidden');
+                await loadAllChores();
+                showNotification('Info', 'Chore submission rejected', 'info');
+            } catch (error) {
+                console.error('Error rejecting chore:', error);
+                showNotification('Error', error.message, 'error');
+            }
+        }
+        
+        // Helper functions for status display
+        function formatStatus(status) {
+            return status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+        
+        function getStatusBadgeClass(status) {
+            switch(status) {
+                case 'available': return 'bg-gray-100 text-gray-800';
+                case 'pending_acceptance': return 'bg-yellow-100 text-yellow-800';
+                case 'in_progress': return 'bg-blue-100 text-blue-800';
+                case 'pending_approval': return 'bg-purple-100 text-purple-800';
+                case 'completed': return 'bg-green-100 text-green-800';
+                default: return 'bg-gray-100 text-gray-800';
+            }
+        }
+        
+        function getStatusTextClass(status) {
+            switch(status) {
+                case 'available': return 'text-gray-600';
+                case 'pending_acceptance': return 'text-yellow-600';
+                case 'in_progress': return 'text-blue-600';
+                case 'pending_approval': return 'text-purple-600';
+                case 'completed': return 'text-green-600';
+                default: return 'text-gray-600';
+            }
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffTime = Math.abs(now - date);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 1) {
+                return 'Yesterday';
+            } else if (diffDays < 7) {
+                return `${diffDays} days ago`;
+            } else {
+                return date.toLocaleDateString();
+            }
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for existing token
+            const savedToken = localStorage.getItem('family_chores_token');
+            if (savedToken) {
+                authToken = savedToken;
+                // Try to verify token
+                apiCall('/auth/verify').then(data => {
+                    if (data.valid && data.user) {
+                        currentUser = data.user;
+                        showDashboard();
+                    } else {
+                        showLogin();
+                    }
+                }).catch(() => {
+                    showLogin();
+                });
+            }
+            
+            // Modal close buttons
+            document.getElementById('closeChoreDetails').addEventListener('click', function() {
+                document.getElementById('choreDetailsModal').classList.add('hidden');
+            });
+            
+            document.getElementById('closeSubmitChore').addEventListener('click', function() {
+                document.getElementById('submitChoreModal').classList.add('hidden');
+            });
+            
+            document.getElementById('closeAssignChore').addEventListener('click', function() {
+                document.getElementById('assignChoreModal').classList.add('hidden');
+            });
+            
+            document.getElementById('closeRecurringModal').addEventListener('click', function() {
+                document.getElementById('recurringChoreModal').classList.add('hidden');
+            });
+            
+            document.getElementById('closeAddMember').addEventListener('click', function() {
+                document.getElementById('addMemberModal').classList.add('hidden');
+            });
+            
+            // Show add family member modal
+            document.getElementById('showAddMemberModal').addEventListener('click', function() {
+                document.getElementById('addMemberModal').classList.remove('hidden');
+            });
+            
+            // Add family member form
+            document.getElementById('addMemberForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const name = document.getElementById('memberName').value.trim();
+                const role = document.getElementById('memberRole').value;
+                const email = document.getElementById('memberEmail').value.trim();
+                
+                if (!name || !role) {
+                    showNotification('Error', 'Please fill in name and role', 'error');
+                    return;
+                }
+                
+                try {
+                    await apiCall(`/families/${currentUser.family_id}/members`, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            name,
+                            role,
+                            email: email || null
+                        })
+                    });
+                    
+                    // Clear form
+                    document.getElementById('memberName').value = '';
+                    document.getElementById('memberEmail').value = '';
+                    document.getElementById('memberRole').value = 'child';
+                    
+                    document.getElementById('addMemberModal').classList.add('hidden');
+                    await loadFamilyMembers();
+                    showNotification('Success', 'Family member added successfully!', 'success');
+                } catch (error) {
+                    console.error('Error adding family member:', error);
+                    showNotification('Error', error.message, 'error');
+                }
+            });
+            
+            // Show recurring chore modal
+            document.getElementById('showRecurringModal').addEventListener('click', function() {
+                // Set default start date to today
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('recurringStartDate').value = today;
+                
+                // Populate day of month options
+                const dayOfMonthSelect = document.getElementById('recurringDayOfMonth');
+                dayOfMonthSelect.innerHTML = '';
+                for (let i = 1; i <= 31; i++) {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.textContent = i;
+                    dayOfMonthSelect.appendChild(option);
+                }
+                
+                // Populate child members for assignment
+                apiCall('/users/family/members').then(data => {
+                    const childMembers = data.members.filter(member => member.role === 'child');
+                    const assignedToSelect = document.getElementById('recurringAssignedTo');
+                    assignedToSelect.innerHTML = '<option value="">Select family member</option>';
+                    childMembers.forEach(member => {
+                        const option = document.createElement('option');
+                        option.value = member.id;
+                        option.textContent = member.name;
+                        assignedToSelect.appendChild(option);
+                    });
+                }).catch(error => {
+                    console.error('Error loading family members:', error);
+                });
+                
+                document.getElementById('recurringChoreModal').classList.remove('hidden');
+            });
+            
+            // Toggle frequency options
+            document.getElementById('recurringFrequency').addEventListener('change', function() {
+                const frequency = this.value;
+                const weeklyOptions = document.getElementById('weeklyOptions');
+                const monthlyOptions = document.getElementById('monthlyOptions');
+                
+                if (frequency === 'weekly') {
+                    weeklyOptions.classList.remove('hidden');
+                    monthlyOptions.classList.add('hidden');
+                } else if (frequency === 'monthly') {
+                    weeklyOptions.classList.add('hidden');
+                    monthlyOptions.classList.remove('hidden');
+                } else {
+                    weeklyOptions.classList.add('hidden');
+                    monthlyOptions.classList.add('hidden');
+                }
+            });
+            
+            // Toggle auto-assign options
+            document.getElementById('recurringAutoAssign').addEventListener('change', function() {
+                const assignmentOptions = document.getElementById('assignmentOptions');
+                if (this.checked) {
+                    assignmentOptions.classList.remove('hidden');
+                } else {
+                    assignmentOptions.classList.add('hidden');
+                }
+            });
+            
+            // Toggle fixed assignment options
+            document.getElementById('recurringRotationType').addEventListener('change', function() {
+                const fixedAssignmentOptions = document.getElementById('fixedAssignmentOptions');
+                if (this.value === 'none') {
+                    fixedAssignmentOptions.classList.remove('hidden');
+                } else {
+                    fixedAssignmentOptions.classList.add('hidden');
+                }
+            });
+            
+            // Create recurring chore form
+            document.getElementById('createRecurringForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const title = document.getElementById('recurringTitle').value.trim();
+                const reward = document.getElementById('recurringReward').value;
+                const description = document.getElementById('recurringDescription').value.trim();
+                const frequency = document.getElementById('recurringFrequency').value;
+                const dayOfWeek = frequency === 'weekly' ? document.getElementById('recurringDayOfWeek').value : null;
+                const dayOfMonth = frequency === 'monthly' ? document.getElementById('recurringDayOfMonth').value : null;
+                const startDate = document.getElementById('recurringStartDate').value;
+                const requiresPhoto = document.getElementById('recurringRequiresPhoto').checked;
+                const autoAssign = document.getElementById('recurringAutoAssign').checked;
+                const rotationType = autoAssign ? document.getElementById('recurringRotationType').value : 'none';
+                const assignedTo = (autoAssign && rotationType === 'none') ? document.getElementById('recurringAssignedTo').value : null;
+
+                if (!title || !reward || !frequency || !startDate) {
+                    showNotification('Error', 'Please fill in all required fields', 'error');
+                    return;
+                }
+
+                try {
+                    await apiCall('/recurring', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            title,
+                            description,
+                            reward_type: 'money',
+                            reward_amount: parseFloat(reward),
+                            requires_photo: requiresPhoto,
+                            frequency,
+                            day_of_week: dayOfWeek,
+                            day_of_month: dayOfMonth,
+                            start_date: startDate,
+                            auto_assign: autoAssign,
+                            assigned_to: assignedTo,
+                            rotation_type: rotationType
+                        })
+                    });
+
+                    // Clear form
+                    document.getElementById('recurringTitle').value = '';
+                    document.getElementById('recurringReward').value = '';
+                    document.getElementById('recurringDescription').value = '';
+                    document.getElementById('recurringRequiresPhoto').checked = false;
+                    document.getElementById('recurringAutoAssign').checked = false;
+                    document.getElementById('assignmentOptions').classList.add('hidden');
+                    
+                    document.getElementById('recurringChoreModal').classList.add('hidden');
+                    showNotification('Success', 'Recurring chore created successfully!', 'success');
+                    
+                    // Add a section for recurring chores in the manage tab if it doesn't exist
+                    const manageTabContent = document.getElementById('manageTabContent');
+                    if (!document.getElementById('recurringChoresSection')) {
+                        const recurringSection = document.createElement('div');
+                        recurringSection.id = 'recurringChoresSection';
+                        recurringSection.className = 'bg-white rounded-lg shadow p-6 mt-6';
+                        recurringSection.innerHTML = `
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Recurring Chores</h3>
+                            <div id="recurringChores" class="space-y-4">
+                                <p class="text-gray-500">Loading recurring chores...</p>
+                            </div>
+                        `;
+                        manageTabContent.querySelector('.space-y-6').appendChild(recurringSection);
+                    }
+                    
+                    // Load recurring chores
+                    loadRecurringChores();
+                } catch (error) {
+                    showNotification('Creation Failed', error.message, 'error');
+                }
+            });
+            
+            // Load recurring chores
+            async function loadRecurringChores() {
+                if (!currentUser || currentUser.role !== 'parent') return;
+                
+                try {
+                    const data = await apiCall('/recurring');
+                    const recurringChoresEl = document.getElementById('recurringChores');
+                    
+                    if (!recurringChoresEl) return;
+                    
+                    if (data.data.recurringChores && data.data.recurringChores.length > 0) {
+                        recurringChoresEl.innerHTML = data.data.recurringChores.map(chore => `
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <h4 class="font-medium text-gray-900">${chore.title}</h4>
+                                <p class="text-sm text-gray-600 mt-1">${chore.description || ''}</p>
+                                <div class="flex flex-wrap items-center mt-2 gap-2">
+                                    <span class="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800">
+                                        ${formatFrequency(chore.frequency, chore.day_of_week, chore.day_of_month)}
+                                    </span>
+                                    <span class="text-sm text-green-600 font-medium">$${chore.reward_amount}</span>
+                                    <span class="text-sm text-purple-600">
+                                        Next: ${formatNextDueDate(chore.next_due_date)}
+                                    </span>
+                                </div>
+                                ${chore.assigned_to_name ? `<p class="text-xs text-gray-500 mt-1">Assigned to: ${chore.assigned_to_name}</p>` : ''}
+                                ${chore.auto_assign && chore.rotation_type !== 'none' ? `<p class="text-xs text-gray-500 mt-1">Auto-assign with ${chore.rotation_type} rotation</p>` : ''}
+                                <div class="mt-3 flex justify-end">
+                                    <button class="text-sm bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700" onclick="generateChoresFromRecurring(${chore.id})">
+                                        Generate Now
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        recurringChoresEl.innerHTML = '<p class="text-gray-500">No recurring chores set up yet</p>';
+                    }
+                } catch (error) {
+                    console.error('Error loading recurring chores:', error);
+                    if (document.getElementById('recurringChores')) {
+                        document.getElementById('recurringChores').innerHTML = '<p class="text-red-500">Error loading recurring chores</p>';
+                    }
+                }
+            }
+            
+            // Generate chores from recurring template
+            async function generateChoresFromRecurring(recurringId) {
+                try {
+                    const data = await apiCall('/recurring/generate', {
+                        method: 'POST',
+                        body: JSON.stringify({ recurringId })
+                    });
+                    
+                    await loadAllChores();
+                    await loadRecurringChores();
+                    showNotification('Success', `Generated ${data.data.generated} chores from recurring template`, 'success');
+                } catch (error) {
+                    console.error('Error generating chores:', error);
+                    showNotification('Error', error.message, 'error');
+                }
+            }
+            
+            // Format recurring chore frequency
+            function formatFrequency(frequency, dayOfWeek, dayOfMonth) {
+                switch (frequency) {
+                    case 'daily':
+                        return 'Daily';
+                    case 'weekly':
+                        if (dayOfWeek) {
+                            return `Weekly on ${dayOfWeek.charAt(0).toUpperCase() + dayOfWeek.slice(1)}s`;
+                        }
+                        return 'Weekly';
+                    case 'monthly':
+                        if (dayOfMonth) {
+                            return `Monthly on day ${dayOfMonth}`;
+                        }
+                        return 'Monthly';
+                    default:
+                        return frequency;
+                }
+            }
+            
+            // Format next due date
+            function formatNextDueDate(dateString) {
+                if (!dateString) return 'Not scheduled';
+                
+                const date = new Date(dateString);
+                const now = new Date();
+                const tomorrow = new Date(now);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                
+                // Check if it's today
+                if (date.toDateString() === now.toDateString()) {
+                    return 'Today';
+                }
+                
+                // Check if it's tomorrow
+                if (date.toDateString() === tomorrow.toDateString()) {
+                    return 'Tomorrow';
+                }
+                
+                // Otherwise return formatted date
+                return date.toLocaleDateString();
+            }
+            
+            // Photo preview functionality
+            document.getElementById('submitPhoto').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    // Check file size (max 5MB)
+                    if (file.size > 5 * 1024 * 1024) {
+                        showNotification('Error', 'Photo must be less than 5MB', 'error');
+                        e.target.value = '';
+                        return;
+                    }
+                    
+                    // Show preview
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        let preview = document.getElementById('photoPreview');
+                        if (!preview) {
+                            preview = document.createElement('img');
+                            preview.id = 'photoPreview';
+                            preview.className = 'photo-preview';
+                            document.getElementById('submitPhoto').parentElement.appendChild(preview);
+                        }
+                        preview.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    // Remove preview if no valid image
+                    const preview = document.getElementById('photoPreview');
+                    if (preview) {
+                        preview.remove();
+                    }
+                }
+            });
+            
+            // Submit chore form with photo optimization
+            document.getElementById('submitChoreForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const choreId = document.getElementById('submitChoreId').value;
+                const notes = document.getElementById('submitNotes').value;
+                const photoInput = document.getElementById('submitPhoto');
+                
+                // Show loading state
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner"></span> Submitting...';
+                
+                try {
+                    const formData = new FormData();
+                    formData.append('notes', notes);
+                    
+                    if (photoInput.files.length > 0) {
+                        const file = photoInput.files[0];
+                        
+                        // Compress image if needed
+                        if (file.size > 1024 * 1024) { // If larger than 1MB
+                            const compressedFile = await compressImage(file);
+                            formData.append('photo', compressedFile);
+                        } else {
+                            formData.append('photo', file);
+                        }
+                    }
+                    
+                    await apiCall(`/chores/${choreId}/submit`, {
+                        method: 'POST',
+                        headers: {
+                            // Remove Content-Type to let browser set it with boundary for FormData
+                            Authorization: `Bearer ${authToken}`
+                        },
+                        body: formData
+                    });
+                    
+                    // Clear preview
+                    const preview = document.getElementById('photoPreview');
+                    if (preview) {
+                        preview.remove();
+                    }
+                    
+                    document.getElementById('submitChoreModal').classList.add('hidden');
+                    await loadMyChores();
+                    await loadAllChores();
+                    showNotification('Success', 'Chore submitted successfully', 'success');
+                } catch (error) {
+                    console.error('Error submitting chore:', error);
+                    showNotification('Error', error.message, 'error');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+            });
+            
+            // Image compression function
+            async function compressImage(file) {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = new Image();
+                        img.onload = function() {
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext('2d');
+                            
+                            // Calculate new dimensions (max 1024px)
+                            let width = img.width;
+                            let height = img.height;
+                            const maxSize = 1024;
+                            
+                            if (width > height && width > maxSize) {
+                                height = (height * maxSize) / width;
+                                width = maxSize;
+                            } else if (height > maxSize) {
+                                width = (width * maxSize) / height;
+                                height = maxSize;
+                            }
+                            
+                            canvas.width = width;
+                            canvas.height = height;
+                            
+                            // Draw and compress
+                            ctx.drawImage(img, 0, 0, width, height);
+                            
+                            canvas.toBlob(function(blob) {
+                                resolve(new File([blob], file.name, {
+                                    type: 'image/jpeg',
+                                    lastModified: Date.now()
+                                }));
+                            }, 'image/jpeg', 0.8); // 80% quality
+                        };
+                        img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+            
+            // Assign chore form
+            document.getElementById('assignChoreForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const choreId = document.getElementById('assignChoreId').value;
+                const userId = document.getElementById('assignUserId').value;
+                
+                if (!userId) {
+                    showNotification('Error', 'Please select a family member', 'error');
+                    return;
+                }
+                
+                try {
+                    await apiCall(`/chores/${choreId}/assign`, {
+                        method: 'POST',
+                        body: JSON.stringify({ userId })
+                    });
+                    
+                    document.getElementById('assignChoreModal').classList.add('hidden');
+                    await loadAllChores();
+                    showNotification('Success', 'Chore assigned successfully', 'success');
+                } catch (error) {
+                    console.error('Error assigning chore:', error);
+                    showNotification('Error', error.message, 'error');
+                }
+            });
+
+            // Login form
+            document.getElementById('loginForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const familyCode = document.getElementById('familyCode').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+
+                if (!familyCode || !email || !password) {
+                    showNotification('Error', 'Please fill in all fields', 'error');
+                    return;
+                }
+
+                try {
+                    const data = await apiCall('/auth/login', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            familyCode: familyCode.toUpperCase(),
+                            email: email,
+                            password: password
+                        })
+                    });
+
+                    authToken = data.token;
+                    currentUser = data.data.user;
+                    localStorage.setItem('family_chores_token', authToken);
+                    
+                    showNotification('Success', `Welcome back, ${currentUser.name}!`, 'success');
+                    showDashboard();
+                } catch (error) {
+                    showNotification('Login Failed', error.message, 'error');
+                }
+            });
+
+            // Register form toggle
+            document.getElementById('showRegister').addEventListener('click', function() {
+                document.getElementById('registerForm').classList.remove('hidden');
+                this.classList.add('hidden');
+            });
+
+            document.getElementById('cancelRegister').addEventListener('click', function() {
+                document.getElementById('registerForm').classList.add('hidden');
+                document.getElementById('showRegister').classList.remove('hidden');
+            });
+
+            // Register form
+            document.getElementById('registerForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const familyName = document.getElementById('regFamilyName').value.trim();
+                const adminName = document.getElementById('regAdminName').value.trim();
+                const email = document.getElementById('regEmail').value.trim();
+                const password = document.getElementById('regPassword').value;
+
+                if (!familyName || !adminName || !email || !password) {
+                    showNotification('Error', 'Please fill in all fields', 'error');
+                    return;
+                }
+
+                try {
+                    const data = await apiCall('/auth/register', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            familyName: familyName,
+                            adminName: adminName,
+                            adminEmail: email,
+                            adminPassword: password
+                        })
+                    });
+
+                    authToken = data.token;
+                    currentUser = data.data.user;
+                    localStorage.setItem('family_chores_token', authToken);
+                    
+                    showNotification('Success', `Family created! Your family code is: ${currentUser.family_code}`, 'success');
+                    showDashboard();
+                } catch (error) {
+                    showNotification('Registration Failed', error.message, 'error');
+                }
+            });
+
+            // Create chore form
+            document.getElementById('createChoreForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const title = document.getElementById('choreTitle').value.trim();
+                const reward = document.getElementById('choreReward').value;
+                const description = document.getElementById('choreDescription').value.trim();
+                const requiresPhoto = document.getElementById('choreRequiresPhoto').checked;
+                const acceptanceTimer = parseInt(document.getElementById('choreAcceptanceTimer').value, 10) || 5;
+                const priority = document.getElementById('chorePriority').value;
+                const estimatedDuration = document.getElementById('choreEstimatedDuration').value ? parseInt(document.getElementById('choreEstimatedDuration').value, 10) : null;
+                const difficulty = document.getElementById('choreDifficulty').value;
+                const category = document.getElementById('choreCategory').value.trim() || null;
+                const autoAssign = document.getElementById('choreAutoAssign').checked;
+                const rotationType = document.getElementById('choreRotationType').value;
+                const assignedTo = document.getElementById('choreAssignedTo').value || null;
+
+                if (!title || !reward) {
+                    showNotification('Error', 'Please fill in title and reward amount', 'error');
+                    return;
+                }
+
+                try {
+                    // If rotation members are needed, fetch family members to derive child IDs
+                    let rotationMembers = null;
+                    if (autoAssign && rotationType !== 'none') {
+                        const membersData = await apiCall('/users/family/members');
+                        const childMembers = (membersData.members || []).filter(m => m.role === 'child').map(m => m.id);
+                        rotationMembers = childMembers.length ? childMembers : null;
+                    }
+
+                    const payload = {
+                        title,
+                        description,
+                        reward_type: 'money',
+                        reward_amount: parseFloat(reward),
+                        requires_photo: requiresPhoto,
+                        acceptance_timer: acceptanceTimer,
+                        auto_assign: autoAssign,
+                        assigned_to: autoAssign && rotationType === 'none' ? assignedTo : null,
+                        rotation_type: rotationType,
+                        rotation_members: rotationMembers,
+                        priority,
+                        estimated_duration: estimatedDuration,
+                        difficulty_level: difficulty,
+                        category
+                    };
+
+                    await apiCall('/chores', {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    });
+
+                    // Clear form
+                    document.getElementById('choreTitle').value = '';
+                    document.getElementById('choreReward').value = '';
+                    document.getElementById('choreDescription').value = '';
+                    document.getElementById('choreRequiresPhoto').checked = false;
+                    document.getElementById('choreAcceptanceTimer').value = 5;
+                    document.getElementById('choreAutoAssign').checked = false;
+                    document.getElementById('choreRotationType').value = 'none';
+                    document.getElementById('choreAssignedTo').value = '';
+                    document.getElementById('chorePriority').value = 'medium';
+                    document.getElementById('choreEstimatedDuration').value = '';
+                    document.getElementById('choreDifficulty').value = 'medium';
+                    document.getElementById('choreCategory').value = '';
+
+                    showNotification('Success', 'Chore created successfully!', 'success');
+                    loadAllChores();
+                } catch (error) {
+                    showNotification('Creation Failed', error.message, 'error');
+                }
+            });
+
+            // Toggle create chore assignment options
+            document.getElementById('choreAutoAssign').addEventListener('change', function() {
+                const opt = document.getElementById('choreAssignmentOptions');
+                if (this.checked) opt.classList.remove('hidden');
+                else opt.classList.add('hidden');
+            });
+
+            document.getElementById('choreRotationType').addEventListener('change', function() {
+                const fixed = document.getElementById('choreFixedAssignment');
+                if (this.value === 'none') fixed.classList.remove('hidden');
+                else fixed.classList.add('hidden');
+            });
+
+            // Populate assign dropdowns when family members load
+            // Ensure choreAssignedTo is populated similarly to assignUserId
+            async function populateCreateChoreMembers() {
+                try {
+                    const data = await apiCall('/users/family/members');
+                    const childMembers = (data.members || []).filter(m => m.role === 'child');
+                    const assignedSelect = document.getElementById('choreAssignedTo');
+                    if (assignedSelect) {
+                        assignedSelect.innerHTML = '<option value="">Select family member</option>' + childMembers.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+                    }
+                } catch (err) {
+                    console.error('Error populating create chore members:', err);
+                }
+            }
+
+            // Call once on load to populate
+            populateCreateChoreMembers();
+
+            // Tab switching
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tabName = this.dataset.tab;
+                    
+                    // Update button states
+                    document.querySelectorAll('.tab-btn').forEach(b => {
+                        b.className = 'tab-btn py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm';
+                    });
+                    this.className = 'tab-btn py-4 px-1 border-b-2 border-blue-500 text-blue-600 font-medium text-sm';
+                    
+                    // Show/hide content
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.add('hidden');
+                    });
+                    
+                    if (tabName === 'dashboard') {
+                        document.getElementById('dashboardTab').classList.remove('hidden');
+                    } else if (tabName === 'chores') {
+                        document.getElementById('choresTab').classList.remove('hidden');
+                    } else if (tabName === 'manage') {
+                        document.getElementById('manageTabContent').classList.remove('hidden');
+                    }
+                });
+            });
+
+            // Logout
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                showLogin();
+                showNotification('Info', 'Logged out successfully', 'info');
+            });
+        });
+    </script>
+</body>
+</html>

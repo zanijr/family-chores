@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: family_chores_db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-FamilyChores2025!}
+      MYSQL_DATABASE: ${DB_NAME:-family_chores}
+      MYSQL_USER: ${DB_USER:-chores_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-ChoresPass123!}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+    networks:
+      - family_chores_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+      interval: 30s
+
+  api:
+    build: 
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: family_chores_api
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: ${DB_USER:-chores_user}
+      DB_PASSWORD: ${DB_PASSWORD:-ChoresPass123!}
+      DB_NAME: ${DB_NAME:-family_chores}
+      JWT_SECRET: ${JWT_SECRET:-FamilyChoresJWT2025SecretKey!}
+      PORT: 3000
+      UPLOAD_MAX_SIZE: ${UPLOAD_MAX_SIZE:-5242880}
+      UPLOAD_PATH: /app/uploads
+    ports:
+      - "3000:3000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+    volumes:
+      - ./uploads:/app/uploads
+      - ./api:/app
+      - ./frontend:/app/frontend
+      - /app/node_modules
+    networks:
+      - family_chores_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      timeout: 10s
+      retries: 5
+      interval: 30s
+
+volumes:
+  mysql_data:
+    driver: local
+  uploads:
+    driver: local
+
+networks:
+  family_chores_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

@@ -1,0 +1,49 @@
+{
+  "name": "Family Chores App",
+  "short_name": "Chores",
+  "description": "Manage chores and rewards for your family",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#3B82F6",
+  "theme_color": "#4F46E5",
+  "orientation": "any",
+  "scope": "/",
+  "shortcuts": [
+    {
+      "name": "My Chores",
+      "short_name": "Chores",
+      "description": "View your assigned chores",
+      "url": "/?tab=chores"
+    },
+    {
+      "name": "Family Dashboard",
+      "short_name": "Dashboard",
+      "description": "View family dashboard",
+      "url": "/?tab=dashboard"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjU2OCIgdmlld0JveD0iMCAwIDMyMCA1NjgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjMyMCIgaGVpZ2h0PSI1NjgiIGZpbGw9IiM0RjQ2RTUiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjRweCIgZmlsbD0id2hpdGUiPkZhbWlseSBDaG9yZXMgQXBwPC90ZXh0Pjwvc3ZnPg==",
+      "sizes": "320x568",
+      "type": "image/svg+xml",
+      "form_factor": "narrow",
+      "label": "Family Chores App - Mobile View"
+    }
+  ],
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIGZpbGw9IiMzQjgyRjYiLz4KPHN2ZyB4PSI0IiB5PSI0IiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiI+CjxwYXRoIGQ9Im05IDEybDIgMiA0LTQiLz4KPHN2ZyB4PSIyIiB5PSIyIiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMS41Ij4KPHN2ZyB4PSIzIiB5PSIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMS4yNSI+CjxwYXRoIGQ9Ik03LjgzNSA0LjY5N2EzLjQyIDMuNDIgMCAwIDAgMS45NDYtLjgwNiAzLjQyIDMuNDIgMCAwIDEgNC40MzggMCAzLjQyIDMuNDIgMCAwIDAgMS45NDYuODA2IDMuNDIgMy40MiAwIDAgMSAzLjEzOCAzLjEzOCAzLjQyIDMuNDIgMCAwIDAgLjgwNiAxLjk0NiAzLjQyIDMuNDIgMCAwIDEgMCA0LjQzOCAzLjQyIDMuNDIgMCAwIDAtLjgwNiAxLjk0NiAzLjQyIDMuNDIgMCAwIDEtMy4xMzggMy4xMzggMy40MiAzLjQyIDAgMCAwLTEuOTQ2LjgwNiAzLjQyIDMuNDIgMCAwIDEtNC40MzggMCAzLjQyIDMuNDIgMCAwIDAtMS45NDYtLjgwNiAzLjQyIDMuNDIgMCAwIDEtMy4xMzgtMy4xMzggMy40MiAzLjQyIDAgMCAwLS44MDYtMS45NDYgMy40MiAzLjQyIDAgMCAxIDAtNC40MzggMy40MiAzLjQyIDAgMCAwIC44MDYtMS45NDYgMy40MiAzLjQyIDAgMCAxIDMuMTM4LTMuMTM4eiIvPgo8L3N2Zz4KPC9zdmc+Cjwvc3ZnPgo8L3N2Zz4K",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIGZpbGw9IiMzQjgyRjYiLz4KPHN2ZyB4PSI0IiB5PSI0IiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiI+CjxwYXRoIGQ9Im05IDEybDIgMiA0LTQiLz4KPHN2ZyB4PSIyIiB5PSIyIiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMS41Ij4KPHN2ZyB4PSIzIiB5PSIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMS4yNSI+CjxwYXRoIGQ9Ik03LjgzNSA0LjY5N2EzLjQyIDMuNDIgMCAwIDAgMS45NDYtLjgwNiAzLjQyIDMuNDIgMCAwIDEgNC40MzggMCAzLjQyIDMuNDIgMCAwIDAgMS45NDYuODA2IDMuNDIgMy40MiAwIDAgMSAzLjEzOCAzLjEzOCAzLjQyIDMuNDIgMCAwIDAgLjgwNiAxLjk0NiAzLjQyIDMuNDIgMCAwIDEgMCA0LjQzOCAzLjQyIDMuNDIgMCAwIDAtLjgwNiAxLjk0NiAzLjQyIDMuNDIgMCAwIDEtMy4xMzggMy4xMzggMy40MiAzLjQyIDAgMCAwLTEuOTQ2LjgwNiAzLjQyIDMuNDIgMCAwIDEtNC40MzggMCAzLjQyIDMuNDIgMCAwIDAtMS45NDYtLjgwNiAzLjQyIDMuNDIgMCAwIDEtMy4xMzgtMy4xMzggMy40MiAzLjQyIDAgMCAwLS44MDYtMS45NDYgMy40MiAzLjQyIDAgMCAxIDAtNC40MzggMy40MiAzLjQyIDAgMCAwIC44MDYtMS45NDYgMy40MiAzLjQyIDAgMCAxIDMuMTM4LTMuMTM4eiIvPgo8L3N2Zz4KPC9zdmc+Cjwvc3ZnPgo8L3N2Zz4K",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["productivity", "lifestyle"],
+  "lang": "en",
+  "dir": "ltr"
+}
