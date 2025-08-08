@@ -198,11 +198,6 @@
             <!-- Simple Login Form -->
             <form id="loginForm" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Family Code</label>
-                    <input type="text" id="familyCode" placeholder="Enter family code" 
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                </div>
-                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
                     <input type="email" id="email" placeholder="Enter your email" 
                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
@@ -535,6 +530,11 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Email (optional)</label>
                                 <input type="email" id="memberEmail" 
                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Password (optional)</label>
+                                <input type="password" id="memberPassword" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Set a password for the user">
                             </div>
                             <button type="submit" class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700">
                                 Add Family Member
@@ -1201,6 +1201,7 @@
                 const name = document.getElementById('memberName').value.trim();
                 const role = document.getElementById('memberRole').value;
                 const email = document.getElementById('memberEmail').value.trim();
+                const password = document.getElementById('memberPassword') ? document.getElementById('memberPassword').value : '';
                 
                 if (!name || !role) {
                     showNotification('Error', 'Please fill in name and role', 'error');
@@ -1208,23 +1209,27 @@
                 }
                 
                 try {
-                    await apiCall(`/families/${currentUser.family_id}/members`, {
+                    const resp = await apiCall(`/families/${currentUser.family_id}/members`, {
                         method: 'POST',
                         body: JSON.stringify({
                             name,
                             role,
-                            email: email || null
+                            email: email || null,
+                            password: password || null
                         })
                     });
                     
                     // Clear form
                     document.getElementById('memberName').value = '';
                     document.getElementById('memberEmail').value = '';
+                    const pwdEl = document.getElementById('memberPassword');
+                    if (pwdEl) pwdEl.value = '';
                     document.getElementById('memberRole').value = 'child';
                     
                     document.getElementById('addMemberModal').classList.add('hidden');
                     await loadFamilyMembers();
-                    showNotification('Success', 'Family member added successfully!', 'success');
+                    const tempPwd = resp && resp.data && resp.data.tempPassword;
+                    showNotification('Success', tempPwd ? ('Member added. Temp password: ' + tempPwd) : 'Family member added successfully!', 'success');
                 } catch (error) {
                     console.error('Error adding family member:', error);
                     showNotification('Error', error.message, 'error');
@@ -1644,11 +1649,10 @@
             document.getElementById('loginForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 
-                const familyCode = document.getElementById('familyCode').value.trim();
                 const email = document.getElementById('email').value.trim();
                 const password = document.getElementById('password').value;
 
-                if (!familyCode || !email || !password) {
+                if (!email || !password) {
                     showNotification('Error', 'Please fill in all fields', 'error');
                     return;
                 }
@@ -1657,7 +1661,6 @@
                     const data = await apiCall('/auth/login', {
                         method: 'POST',
                         body: JSON.stringify({
-                            familyCode: familyCode.toUpperCase(),
                             email: email,
                             password: password
                         })

@@ -33,10 +33,6 @@ const familyValidation = [
 ];
 
 const loginValidation = [
-  body('familyCode')
-    .trim()
-    .isLength({ min: 6, max: 10 })
-    .withMessage('Family code must be between 6 and 10 characters'),
   body('email')
     .isEmail()
     .normalizeEmail()
@@ -247,7 +243,7 @@ router.post('/register-user', authRateLimit(10, 15 * 60 * 1000), registerUserVal
   createSendToken(newUser[0], 201, res);
 }));
 
-// Login with family code, email and password
+ // Login with email and password (family inferred from user)
 router.post('/login', authRateLimit(20, 15 * 60 * 1000), loginValidation, catchAsync(async (req, res, next) => {
   // Check validation errors
   const errors = validationResult(req);
@@ -259,57 +255,63 @@ router.post('/login', authRateLimit(20, 15 * 60 * 1000), loginValidation, catchA
     });
   }
 
-  const { familyCode, email, password } = req.body;
+  const { email, password } = req.body;
 
-  // Find user with family code and email
+  // Find active users with this email (could exist in multiple families)
   const users = await db.query(
     `SELECT u.*, f.family_code, f.name as family_name
      FROM users u
      JOIN families f ON u.family_id = f.id
-     WHERE f.family_code = ? AND u.email = ? AND u.is_active = 1`,
-    [familyCode, email]
+     WHERE u.email = ? AND u.is_active = 1`,
+    [email]
   );
 
   if (!users || users.length === 0) {
-    return next(new AppError('Invalid family code, email, or password', 401));
+    return next(new AppError('Invalid email or password', 401));
   }
 
-  const user = users[0];
+  // Find the account where the password matches
+  let matchedUser = null;
+  for (const u of users) {
+    if (await bcrypt.compare(password, u.password_hash)) {
+      matchedUser = u;
+      break;
+    }
+  }
+
+  if (!matchedUser) {
+    // If exactly one account with this email, increment attempts/lock logic for that account
+    if (users.length === 1) {
+      const only = users[0];
+      const newAttempts = (only.login_attempts || 0) + 1;
+      const lockUntil = newAttempts >= 5 ? new Date(Date.now() + 15 * 60 * 1000) : null;
+
+      await db.query(
+        'UPDATE users SET login_attempts = ?, locked_until = ? WHERE id = ?',
+        [newAttempts, lockUntil, only.id]
+      );
+    }
+    return next(new AppError('Invalid email or password', 401));
+  }
 
   // Check if account is locked
-  if (user.locked_until && new Date() < new Date(user.locked_until)) {
+  if (matchedUser.locked_until && new Date() < new Date(matchedUser.locked_until)) {
     return next(new AppError('Account is temporarily locked due to too many failed login attempts', 423));
   }
 
-  // Verify password
-  const isPasswordCorrect = await bcrypt.compare(password, user.password_hash);
-
-  if (!isPasswordCorrect) {
-    // Increment login attempts
-    const newAttempts = (user.login_attempts || 0) + 1;
-    const lockUntil = newAttempts >= 5 ? new Date(Date.now() + 15 * 60 * 1000) : null; // Lock for 15 minutes after 5 attempts
-
-    await db.query(
-      'UPDATE users SET login_attempts = ?, locked_until = ? WHERE id = ?',
-      [newAttempts, lockUntil, user.id]
-    );
-
-    return next(new AppError('Invalid family code, email, or password', 401));
-  }
-
-  // Reset login attempts on successful login
+  // Reset login attempts on successful login and update last_login
   await db.query(
     'UPDATE users SET login_attempts = 0, locked_until = NULL, last_login = NOW() WHERE id = ?',
-    [user.id]
+    [matchedUser.id]
   );
 
   // Remove sensitive data
-  delete user.password_hash;
-  delete user.login_attempts;
-  delete user.locked_until;
+  delete matchedUser.password_hash;
+  delete matchedUser.login_attempts;
+  delete matchedUser.locked_until;
 
   // Send response with token
-  createSendToken(user, 200, res);
+  createSendToken(matchedUser, 200, res);
 }));
 
 // Add new family member
@@ -329,12 +331,26 @@ router.post('/add-member', protect, userValidation, catchAsync(async (req, res, 
     return next(new AppError('Only parents can add family members', 403));
   }
 
-  const { name, role, email } = req.body;
+  const { name, role, email, password } = req.body;
 
-  // Create new user
+  // If a password is provided, email is required
+  if (password && !email) {
+    return next(new AppError('Email is required when setting a password', 400));
+  }
+
+  let passwordHash = null;
+  if (password) {
+    passwordHash = await bcrypt.hash(password, 12);
+  }
+
+  // Create new user (with optional password)
   const result = await db.query(
-    'INSERT INTO users (family_id, name, email, role) VALUES (?, ?, ?, ?)',
-    [req.user.family_id, name, email, role]
+    passwordHash
+      ? 'INSERT INTO users (family_id, name, email, password_hash, role) VALUES (?, ?, ?, ?, ?)'
+      : 'INSERT INTO users (family_id, name, email, role) VALUES (?, ?, ?, ?)',
+    passwordHash
+      ? [req.user.family_id, name, email, passwordHash, role]
+      : [req.user.family_id, name, email, role]
   );
 
   // Get the created user
@@ -349,7 +365,7 @@ router.post('/add-member', protect, userValidation, catchAsync(async (req, res, 
       user: newUser[0]
     }
   });
-}));
+})); 
 
 // Verify token and get current user info
 router.get('/verify', protect, catchAsync(async (req, res, next) => {

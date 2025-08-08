@@ -1,4 +1,5 @@
 const express = require('express');
+const bcrypt = require('bcryptjs');
 const { protect, restrictTo, checkFamilyAccess } = require('../middleware/auth');
 const { catchAsync } = require('../middleware/errorHandler');
 const db = require('../config/database');
@@ -28,7 +29,7 @@ router.post('/:familyId/members', protect, checkFamilyAccess, catchAsync(async (
     });
   }
 
-  const { name, role, email } = req.body;
+  const { name, role, email, password } = req.body;
   
   if (!name || !role) {
     return res.status(400).json({
@@ -37,10 +38,11 @@ router.post('/:familyId/members', protect, checkFamilyAccess, catchAsync(async (
     });
   }
 
-  // Generate a random password if not provided
-  const password = Math.random().toString(36).slice(-8);
+  // Use provided password or generate a temporary one, then hash it
+  const tempPassword = password && password.trim() ? password : Math.random().toString(36).slice(-8);
+  const passwordHash = await bcrypt.hash(tempPassword, 12);
   
-  // Insert the new family member
+  // Insert the new family member (store hashed password)
   const result = await db.query(
     `INSERT INTO users 
      (family_id, name, role, email, password_hash, is_active) 
@@ -50,7 +52,7 @@ router.post('/:familyId/members', protect, checkFamilyAccess, catchAsync(async (
       name,
       role,
       email || null,
-      password // In a real app, this should be hashed
+      passwordHash
     ]
   );
 
@@ -63,6 +65,8 @@ router.post('/:familyId/members', protect, checkFamilyAccess, catchAsync(async (
     status: 'success',
     data: { 
       member: newMember,
+      // Only return tempPassword when we generated one for convenience
+      tempPassword: password && password.trim() ? undefined : tempPassword,
       message: 'Family member added successfully'
     }
   });
